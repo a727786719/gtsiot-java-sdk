@@ -1,0 +1,3 @@
+org.springframework.boot.EnvironmentPostProcessor=io.github.a727786719.config.etcd.EtcdEnvironmentPostProcessor, \
+  io.github.a727786719.config.lite.LiteEnvironmentPostProcessor, \
+  io.github.a727786719.encrypt.DecryptPropertySourcesEnvironmentProcessor

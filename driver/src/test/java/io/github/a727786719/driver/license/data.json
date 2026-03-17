@@ -1,0 +1,333 @@
+{
+  "device": {
+    "settings": {
+      "host": "192.168.88.134",
+      "domain": "192.168.88.134",
+      "user": "opcuser",
+      "password": "opcpasswd",
+      "progid": "Matrikon.OPC.Simulation.1",
+      "connectType": "AUTO",
+      "interval": 5
+    }
+  },
+  "tables": [
+    {
+      "id": "opcda-table-001",
+      "name": "OPCDA数据表",
+      "devices": [
+        {
+          "id": "matrikon-sim-001",
+          "name": "Matrikon模拟服务器",
+          "device": {
+            "settings": {
+              "host": "192.168.88.134",
+              "domain": "192.168.88.134",
+              "user": "opcuser",
+              "password": "dell@123",
+              "progid": "Matrikon.OPC.Simulation.1",
+              "connectType": "AUTO",
+              "interval": 5
+            },
+            "tags": [
+              {
+                "name": "write.int4",
+                "id": "write_int4",
+                "itemid": "write.int4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real41",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real42",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real43",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real44",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real45",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real46",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real47",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real48",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real49",
+                "itemid": "write.real4",
+                "rw": false
+              }
+            ],
+            "commands": []
+          }
+        },
+        {
+          "id": "matrikon-sim-002",
+          "name": "Matrikon模拟服务器",
+          "device": {
+            "settings": {
+              "host": "192.168.88.134",
+              "domain": "192.168.88.134",
+              "user": "opcuser",
+              "password": "dell@123",
+              "progid": "Matrikon.OPC.Simulation.1",
+              "connectType": "AUTO",
+              "interval": 5
+            },
+            "tags": [
+              {
+                "name": "write.int4",
+                "id": "write_int4",
+                "itemid": "write.int4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real41",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real42",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real43",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real44",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real45",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real46",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real47",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real48",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real49",
+                "itemid": "write.real4",
+                "rw": false
+              }
+            ],
+            "commands": []
+          }
+        },
+        {
+          "id": "matrikon-sim-003",
+          "name": "Matrikon模拟服务器",
+          "device": {
+            "settings": {
+              "host": "192.168.88.134",
+              "domain": "192.168.88.134",
+              "user": "opcuser",
+              "password": "dell@123",
+              "progid": "Matrikon.OPC.Simulation.1",
+              "connectType": "AUTO",
+              "interval": 5
+            },
+            "tags": [
+              {
+                "name": "write.int4",
+                "id": "write_int4",
+                "itemid": "write.int4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real41",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real42",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real43",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real44",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real45",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real46",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real47",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real48",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real49",
+                "itemid": "write.real4",
+                "rw": false
+              }
+            ],
+            "commands": []
+          }
+        },
+        {
+          "id": "matrikon-sim-004",
+          "name": "Matrikon模拟服务器",
+          "device": {
+            "settings": {
+              "host": "192.168.88.134",
+              "domain": "192.168.88.134",
+              "user": "opcuser",
+              "password": "dell@123",
+              "progid": "Matrikon.OPC.Simulation.1",
+              "connectType": "AUTO",
+              "interval": 5
+            },
+            "tags": [
+              {
+                "name": "write.int4",
+                "id": "write_int4",
+                "itemid": "write.int4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real41",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real42",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real43",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real44",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real45",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real46",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real47",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real48",
+                "itemid": "write.real4",
+                "rw": false
+              },
+              {
+                "name": "write.real4",
+                "id": "write_real49",
+                "itemid": "write.real4",
+                "rw": false
+              }
+            ],
+            "commands": []
+          }
+        }
+      ]
+    }
+  ]
+}

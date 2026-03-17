@@ -1,0 +1,406 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package io.github.a727786719.driver;
+
+import com.google.common.collect.Maps;
+import io.github.a727786719.driver.config.BasicConfig;
+import io.github.a727786719.driver.config.Device;
+import io.github.a727786719.driver.config.DriverSingleConfig;
+import io.github.a727786719.driver.config.Model;
+import io.github.a727786719.driver.model.Field;
+import io.github.a727786719.driver.model.FieldType;
+import io.github.a727786719.driver.model.Point;
+import io.github.a727786719.driver.model.Tag;
+import org.jspecify.annotations.NonNull;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
+/**
+ * 全局上下文, 保存一些常用信息
+ */
+public final class GlobalContext {
+
+    /**
+     * deviceId: {tableId: DeviceInfo}
+     */
+    private final AtomicReference<Map<String, Map<String, DeviceInfo<? extends Tag>>>> devices = new AtomicReference<>(new HashMap<>());
+
+    /**
+     * 表数据点列表
+     * <br>
+     * key: tableId
+     * value: 数据点列表
+     */
+    private final AtomicReference<Map<String, Map<String, Tag>>> tableTags = new AtomicReference<>(Collections.emptyMap());
+
+    private static String VERSION = null;
+
+    static {
+        try (InputStream is = GlobalContext.class.getResourceAsStream("/META-INF/sdk.properties")) {
+            Properties properties = new Properties();
+            properties.load(is);
+            VERSION = properties.getProperty("version");
+        } catch (IOException e) {
+            System.err.println("读取 SDK 版本信息失败");
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    /**
+     * 获取 SDK 版本号
+     *
+     * @return 版本号
+     */
+    public static String getVersion() {
+        return VERSION;
+    }
+
+
+    public synchronized void setAllTableTags(Map<String, Map<String, Tag>> tableTags) {
+        this.tableTags.set(tableTags);
+    }
+
+    public synchronized void setTableTags(String tableId, Map<String, Tag> tableTags) {
+        this.tableTags.get().put(tableId, tableTags);
+    }
+
+    public synchronized void addDevice(DeviceInfo<? extends Tag> device) {
+        Map<String, Map<String, DeviceInfo<? extends Tag>>> allDevices = this.devices.get();
+        Map<String, DeviceInfo<? extends Tag>> tableDevices = allDevices.getOrDefault(device.getId(), new HashMap<>());
+        tableDevices.put(device.getTableId(), device);
+        allDevices.put(device.getId(), tableDevices);
+        this.devices.set(allDevices);
+    }
+
+    public synchronized void removeDevice(String tableId, String deviceId) {
+        if (this.devices.get() == null) {
+            return;
+        }
+
+        Map<String, DeviceInfo<? extends Tag>> tableDevices = this.devices.get().get(deviceId);
+        if (tableDevices != null) {
+            tableDevices.remove(tableId);
+        }
+    }
+
+    public synchronized void removeTable(String tableId) {
+        // 删除该表的旧设备信息
+        Map<String, Map<String, DeviceInfo<?>>> allDevices = this.devices.get();
+        for (Map.Entry<String, Map<String, DeviceInfo<?>>> entry : allDevices.entrySet()) {
+            entry.getValue().remove(tableId);
+        }
+        this.devices.set(allDevices);
+        this.tableTags.get().remove(tableId);
+    }
+
+    /**
+     * 更新全部缓存的设备信息.
+     *
+     * @param deviceInfos 全部设备信息. key: 表标识, value: 设备信息列表.
+     */
+    public synchronized void set(Map<String, List<DeviceInfo<? extends Tag>>> deviceInfos) {
+        if (deviceInfos == null || deviceInfos.isEmpty()) {
+            return;
+        }
+
+        Map<String, Map<String, DeviceInfo<? extends Tag>>> devices = Maps.newHashMapWithExpectedSize(deviceInfos.size());
+        for (Map.Entry<String, List<DeviceInfo<? extends Tag>>> entry : deviceInfos.entrySet()) {
+            devices.put(entry.getKey(), entry.getValue().stream()
+                    .collect(Collectors.toMap(
+                            DeviceInfo::getTableId,
+                            dev -> dev
+                    )));
+        }
+        this.devices.set(devices);
+    }
+
+    public synchronized void setTableDevices(String tableId, List<DeviceInfo<? extends Tag>> deviceInfos) {
+        // 删除该表的旧设备信息
+        Map<String, Map<String, DeviceInfo<?>>> allDevices = this.devices.get();
+        for (Map.Entry<String, Map<String, DeviceInfo<?>>> entry : allDevices.entrySet()) {
+            entry.getValue().remove(tableId);
+        }
+
+        if (CollectionUtils.isEmpty(deviceInfos)) {
+            return;
+        }
+
+        for (DeviceInfo<? extends Tag> device : deviceInfos) {
+            Map<String, DeviceInfo<?>> tableDevices = allDevices.getOrDefault(device.getId(), Maps.newHashMapWithExpectedSize(3));
+            tableDevices.put(device.getTableId(), device);
+            allDevices.put(device.getId(), tableDevices);
+        }
+
+        this.devices.set(allDevices);
+    }
+
+    public Map<String, Tag> getTableTags(String tableId) {
+        return this.tableTags.get().getOrDefault(tableId, Collections.emptyMap());
+    }
+
+    /**
+     * 根据设备标识查找设备信息.
+     *
+     * @param deviceId 设备标识
+     * @return 设备信息. 如果未找到设备则返回 {@link Optional#empty()}
+     * @throws IllegalStateException 如果该设备标识在多个模型表中同时存在, 则会抛出该异常
+     */
+    public Optional<DeviceInfo<? extends Tag>> getDevice(String deviceId) {
+        Assert.hasText(deviceId, "the device id is empty");
+        if (!this.devices.get().containsKey(deviceId)) {
+            return Optional.empty();
+        }
+
+        Map<String, DeviceInfo<? extends Tag>> infos = this.devices.get().get(deviceId);
+        if (infos.size() != 1) {
+            throw new IllegalStateException("在多个模型表中找到相同设备标识. deviceId =" + deviceId + ", tables = " + String.join(",", infos.keySet()));
+        }
+
+        return infos.values().stream().findFirst();
+    }
+
+    /**
+     * 获取指定表内所有设备的信息
+     * @param tableId 表标识
+     * @return 设备列表
+     */
+    public @NonNull List<DeviceInfo<? extends Tag>> getTableDevices(@NonNull String tableId) {
+        Assert.hasText(tableId, "the table id is empty");
+        List<DeviceInfo<? extends Tag>> devices = new ArrayList<>();
+        Map<String, Map<String, DeviceInfo<? extends Tag>>> tableDevices = this.devices.get();
+        for (Map<String, DeviceInfo<? extends Tag>> values : tableDevices.values()) {
+            DeviceInfo<? extends Tag> device = values.get(tableId);
+            if(device != null) {
+                devices.add(device);
+            }
+        }
+        return devices;
+    }
+
+    /**
+     * 获取设备信息
+     *
+     * @param tableId  设备所属模型表标识
+     * @param deviceId 设备ID
+     * @return 设备信息. 如果设备不存在则返回 {@link Optional#empty()}
+     * @throws IllegalArgumentException 如果设备ID为 {@code null} 或空字符串
+     */
+    public Optional<DeviceInfo<? extends Tag>> getDevice(String tableId, String deviceId) {
+        Assert.hasText(deviceId, "the device id is empty");
+        if (!this.devices.get().containsKey(deviceId)) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(this.devices.get().get(deviceId).get(tableId));
+    }
+
+    /**
+     * 获取设备信息
+     *
+     * @param tableId  设备所属模型表标识
+     * @param deviceId 设备ID
+     * @return 设备信息. 如果设备不存在则返回 {@code null}
+     * @throws IllegalArgumentException 如果设备ID为 {@code null} 或空字符串
+     */
+    public DeviceInfo<? extends Tag> getDeviceOrNull(String tableId, String deviceId) {
+        return this.getDevice(tableId, deviceId).orElse(null);
+    }
+
+    /**
+     * 根据数据点标识填充 {@code Field} 字段
+     *
+     * @param tableId   设备所属模型表标识
+     * @param deviceId  数据点所属设备ID
+     * @param tagValues 数据点的值
+     * @return 字段信息列表
+     */
+    public List<Field<? extends Tag>> createFields(String tableId, String deviceId, Map<String, Object> tagValues) {
+        if (CollectionUtils.isEmpty(tagValues)) {
+            throw new IllegalArgumentException("数据点信息不能为空");
+        }
+
+        DeviceInfo<? extends Tag> info = this.getDevice(tableId, deviceId)
+                .orElseThrow(() -> new IllegalStateException("未在表 '" + tableId + "' 中找到设备 '" + deviceId + "'"));
+        Map<String, ? extends Tag> tags = info.getTags();
+        if (CollectionUtils.isEmpty(tags)) {
+            throw new IllegalStateException("未找到设备上的数据点信息: " + deviceId);
+        }
+
+        List<Field<? extends Tag>> fields = new ArrayList<>(tagValues.size());
+        for (Map.Entry<String, ? extends Tag> entry : tags.entrySet()) {
+            String tagId = entry.getKey();
+            if (!tags.containsKey(tagId)) {
+                continue;
+            }
+
+            fields.add(new Field<>(tags.get(tagId), tagValues.get(tagId)));
+        }
+        return fields;
+    }
+
+    public Point createPoint(String tableId, String deviceId, Map<String, Object> tagValues) {
+        return this.createPoint(tableId, deviceId, null, 0, tagValues, Collections.emptyMap());
+    }
+
+    public Point createPoint(String tableId, String deviceId, long time, Map<String, Object> tagValues) {
+        return this.createPoint(tableId, deviceId, null, time, tagValues, Collections.emptyMap());
+    }
+
+    public Point createPoint(String tableId, String deviceId, long time, Map<String, Object> tagValues, Map<String, FieldType> fieldTypes) {
+        return this.createPoint(tableId, deviceId, null, time, tagValues, fieldTypes);
+    }
+
+    public Point createPoint(String tableId, String deviceId, String childDeviceId, long time, Map<String, Object> tagValues) {
+        return this.createPoint(tableId, deviceId, childDeviceId, time, tagValues, Collections.emptyMap());
+    }
+
+    /**
+     * 创建 {@link Point} 对象, 根据 tagId 自动填充相关数据
+     *
+     * @param tableId       设备所属表标识
+     * @param deviceId      设备ID
+     * @param childDeviceId 子设备ID
+     * @param time          数据产生的时间
+     * @param tagValues     数据点的值. <br> key: 数据点ID(tagId). <br> value: 数据点的值.
+     * @param fieldTypes    数据点的数据类型
+     * @return Point 对象
+     */
+    public Point createPoint(String tableId, String deviceId, String childDeviceId, long time,
+                             Map<String, Object> tagValues, Map<String, FieldType> fieldTypes) {
+        if (!StringUtils.hasText(deviceId)) {
+            throw new IllegalStateException("设备标识不能为空");
+        }
+
+        List<Field<? extends Tag>> fields = this.createFields(tableId, deviceId, tagValues);
+
+        if (fields.isEmpty()) {
+            throw new IllegalArgumentException("未定义的数据点: " + tagValues.keySet());
+        }
+
+        if (!StringUtils.hasText(tableId)) {
+            DeviceInfo<? extends Tag> info = this.getDevice(deviceId)
+                    .orElseThrow(() -> new IllegalStateException("未提供 tableId, 未找到设备 '" + deviceId + "'"));
+            tableId = info.getTableId();
+        }
+
+        return new Point(deviceId, childDeviceId, tableId, time, fields, fieldTypes);
+    }
+
+    public void resetGlobalContext(DriverSingleConfig<BasicConfig<? extends Tag>> driverConfig) {
+        String instanceId = driverConfig.getId();
+        Map<String, List<DeviceInfo<? extends Tag>>> deviceInfos = new HashMap<>();
+        Map<String, Map<String, Tag>> allTableTags = new HashMap<>();
+
+        Map<String, Tag> driverInstanceTags = new HashMap<>();
+        if (driverConfig.getConfig() != null && !CollectionUtils.isEmpty(driverConfig.getConfig().getTags())) {
+            for (Tag tag : driverConfig.getConfig().getTags()) {
+                driverInstanceTags.put(tag.getId(), tag);
+            }
+        }
+
+        if (!CollectionUtils.isEmpty(driverConfig.getTables())) {
+            for (Model<BasicConfig<? extends Tag>, BasicConfig<? extends Tag>> table : driverConfig.getTables()) {
+                String tableId = table.getId();
+                table.setDriverInstanceId(instanceId);
+                Map<String, Tag> tableTags = new HashMap<>(driverInstanceTags);
+                if (table.getConfig() != null && !CollectionUtils.isEmpty(table.getConfig().getTags())) {
+                    for (Tag tag : table.getConfig().getTags()) {
+                        tableTags.put(tag.getId(), tag);
+                    }
+                }
+
+                allTableTags.put(tableId, tableTags);
+
+                for (Device<BasicConfig<? extends Tag>> device : table.getDevices()) {
+                    device.setDriverInstanceId(instanceId);
+                    device.setTable(tableId);
+
+                    Map<String, Tag> deviceTags = new HashMap<>(tableTags);
+                    if (device.getConfig() != null && !CollectionUtils.isEmpty(device.getConfig().getTags())) {
+                        for (Tag tag : device.getConfig().getTags()) {
+                            deviceTags.put(tag.getId(), tag);
+                        }
+                    }
+                    String deviceId = device.getId();
+                    DeviceInfo<? extends Tag> info = new DeviceInfo<>(deviceId, tableId, instanceId,
+                            device.getConfig() == null ? null : device.getConfig().getSettings(),
+                            deviceTags);
+                    deviceInfos.putIfAbsent(deviceId, new ArrayList<>(1));
+                    deviceInfos.get(deviceId).add(info);
+                }
+            }
+        }
+
+        this.set(deviceInfos);
+        this.setAllTableTags(allTableTags);
+    }
+
+    public void resetGlobalContextOfTable(String driverInstanceId, DriverSingleConfig.Model<BasicConfig<? extends Tag>> table) {
+        String tableId = table.getId();
+        List<DeviceInfo<? extends Tag>> deviceInfos = new ArrayList<>();
+        Map<String, Tag> tableTags = new HashMap<>();
+
+        if (table.getConfig() != null && !CollectionUtils.isEmpty(table.getConfig().getTags())) {
+            for (Tag tag : table.getConfig().getTags()) {
+                tableTags.put(tag.getId(), tag);
+            }
+        }
+
+        if (!CollectionUtils.isEmpty(table.getDevices())) {
+            for (Device<BasicConfig<? extends Tag>> device : table.getDevices()) {
+                Map<String, Tag> deviceTags = new HashMap<>(tableTags);
+                if (device.getConfig() != null && !CollectionUtils.isEmpty(device.getConfig().getTags())) {
+                    for (Tag tag : device.getConfig().getTags()) {
+                        deviceTags.put(tag.getId(), tag);
+                    }
+                }
+
+                String deviceId = device.getId();
+                DeviceInfo<? extends Tag> info = new DeviceInfo<>(deviceId, tableId, driverInstanceId,
+                        device.getConfig() == null ? null : device.getConfig().getSettings(),
+                        deviceTags);
+                deviceInfos.add(info);
+            }
+        }
+
+        this.setTableDevices(tableId, deviceInfos);
+        this.setTableTags(tableId, tableTags);
+    }
+
+    public void resetGlobalContextOfDevice(String driverInstanceId, Device<BasicConfig<? extends Tag>> device) {
+        String tableId = device.getTable();
+        Map<String, Tag> deviceTags = new HashMap<>(this.getTableTags(tableId));
+        if (device.getConfig() != null && !CollectionUtils.isEmpty(device.getConfig().getTags())) {
+            for (Tag tag : device.getConfig().getTags()) {
+                deviceTags.put(tag.getId(), tag);
+            }
+        }
+        String deviceId = device.getId();
+        DeviceInfo<? extends Tag> deviceInfo = new DeviceInfo<>(deviceId, tableId, driverInstanceId,
+                device.getConfig() == null ? null : device.getConfig().getSettings(),
+                deviceTags);
+        this.addDevice(deviceInfo);
+    }
+}
