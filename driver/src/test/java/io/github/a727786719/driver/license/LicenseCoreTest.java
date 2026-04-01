@@ -28,10 +28,10 @@ class LicenseCoreTest {
     @Test
     @EnabledOnOs(OS.WINDOWS)
     void testVerifyLicenseWithInvalidPath() {
-        try(FileInputStream fis = new FileInputStream("F:\\HTKJ_Workspace\\sdk-java\\sdk-driver-starter\\src\\test\\java\\io\\github\\airiot\\sdk\\driver\\license\\data.json")) {
+        try(FileInputStream fis = new FileInputStream("F:\\GTSIOT_Workspace\\sdk-java\\sdk-driver-starter\\src\\test\\java\\io\\github\\gtsiot\\sdk\\driver\\license\\data.json")) {
             String data = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
             try (LicenseCore licenseCore = new LicenseCore()) {
-                int result = licenseCore.verifyLicense("D:\\AIRIOT\\airiot_42ef9c4ee4c2ee5ffa615c41eecad849a9b963_licenses", "kafka-driver", data);
+                int result = licenseCore.verifyLicense("D:\\GTSIOT\\airiot_42ef9c4ee4c2ee5ffa615c41eecad849a9b963_licenses", "kafka-driver", data);
                 // Should fail with non-existent license file
                 System.out.println("Error:" + result + ", " + licenseCore.getLastError());
                 assertEquals(0, result);

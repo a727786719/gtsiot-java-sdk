@@ -19,6 +19,7 @@ package io.github.a727786719.client.properties;
 
 
 import io.github.a727786719.client.context.RequestContext;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -37,7 +38,7 @@ import java.util.Optional;
 @ConfigurationProperties(prefix = AuthorizationProperties.PREFIX)
 public class AuthorizationProperties implements InitializingBean, EnvironmentAware {
 
-    public static final String PREFIX = "airiot.client.authorization";
+    public static final String PREFIX = "gtsiot.client.authorization";
 
     private Environment environment;
 
@@ -109,8 +110,8 @@ public class AuthorizationProperties implements InitializingBean, EnvironmentAwa
                 }
             } else {
                 // 如果 client 未设置 projectId, 则使用 driver 的 projectId
-                String clientProjectId = this.environment.getProperty("airiot.client.authorization.project-id");
-                String driverProjectId = this.environment.getProperty("airiot.driver.project-id");
+                String clientProjectId = this.environment.getProperty("gtsiot.client.authorization.project-id");
+                String driverProjectId = this.environment.getProperty("gtsiot.driver.project-id");
                 if (!StringUtils.hasText(clientProjectId) && StringUtils.hasText(driverProjectId)) {
                     this.projectId = driverProjectId;
                 }
@@ -118,7 +119,7 @@ public class AuthorizationProperties implements InitializingBean, EnvironmentAwa
         }
 
         if (Type.PROJECT.equals(this.type) && !StringUtils.hasText(this.projectId)) {
-            throw new IllegalArgumentException("当 airiot.client.authorization.type=PROJECT 时, 必须设置 airiot.client.authorization.project-id");
+            throw new IllegalArgumentException("当 gtsiot.client.authorization.type=PROJECT 时, 必须设置 gtsiot.client.authorization.project-id");
         }
         if (StringUtils.hasText(this.projectId)) {
             RequestContext.setDefaultProjectId(this.projectId);
@@ -130,7 +131,7 @@ public class AuthorizationProperties implements InitializingBean, EnvironmentAwa
     }
 
     @Override
-    public void setEnvironment(Environment environment) {
+    public void setEnvironment(@NonNull Environment environment) {
         this.environment = environment;
     }
 

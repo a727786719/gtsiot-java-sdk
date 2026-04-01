@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 
@@ -24,45 +25,15 @@ final class NativeLibraryLoader {
     }
 
     /**
-     * 从资源目录提取本地库并返回库文件路径
+     * 获取库文件路径
      *
      * @param libraryName 库名称（不含平台前缀和后缀）
-     * @return 提取后的库文件路径
+     * @return 库文件路径
      * @throws UnsatisfiedLinkError 如果无法提取库
      */
-    static String extractLibrary(String libraryName) {
+    static String getLibraryPath(String libraryName) {
         PlatformInfo platform = detectPlatform();
-        String resourcePath = getResourcePath(libraryName, platform);
-        String libraryFileName = getLibraryFileName(libraryName, platform);
-
-        log.debug("Extracting native library: {} -> {}", resourcePath, libraryFileName);
-
-        try {
-            Path tempDir = Files.createTempDirectory(TEMP_DIR_PREFIX);
-            tempDir.toFile().deleteOnExit();
-
-            Path libraryPath = tempDir.resolve(libraryFileName);
-
-            try (InputStream is = NativeLibraryLoader.class.getResourceAsStream(resourcePath)) {
-                if (is == null) {
-                    throw new UnsatisfiedLinkError(
-                            "Cannot find native library resource: " + resourcePath +
-                                    ". Platform: " + platform
-                    );
-                }
-
-                Files.copy(is, libraryPath, StandardCopyOption.REPLACE_EXISTING);
-            }
-
-            // Mark for deletion on exit
-            libraryPath.toFile().deleteOnExit();
-
-            log.info("Extracted native library to: {}", libraryPath);
-            return libraryPath.toAbsolutePath().toString();
-
-        } catch (IOException e) {
-            throw new UnsatisfiedLinkError("Failed to extract native library: " + e.getMessage());
-        }
+        return getResourcePath(libraryName, platform);
     }
 
     /**
@@ -74,7 +45,18 @@ final class NativeLibraryLoader {
      * - darwin_amd64/liblicense_core_darwin_amd64.dylib
      */
     private static String getResourcePath(String libraryName, PlatformInfo platform) {
-        return "/" + platform.getResourceDir() + "/" + getLibraryFileName(libraryName, platform);
+        String libraryFilename = getLibraryFileName(libraryName, platform);
+        Path path = Paths.get(".").resolve(libraryFilename);
+        if(path.toFile().exists()) {
+            return path.toFile().getAbsolutePath();
+        }
+
+        path = Paths.get("../lib").resolve(libraryFilename);
+        if(path.toFile().exists()) {
+            return path.toFile().getAbsolutePath();
+        }
+
+        throw new LicenseException("未找到授权库文件");
     }
 
     /**
@@ -115,8 +97,8 @@ final class NativeLibraryLoader {
             arch = "amd64";
         } else if (osArch.contains("aarch64") || osArch.contains("arm64")) {
             arch = "arm64";
-        } else if (osArch.contains("x86") || osArch.contains("i386") || osArch.contains("i686")) {
-            arch = "x86";
+        } else if(osArch.contains("loong64")) {
+            arch = "loong64";
         } else {
             throw new UnsupportedOperationException("Unsupported architecture: " + osArch);
         }

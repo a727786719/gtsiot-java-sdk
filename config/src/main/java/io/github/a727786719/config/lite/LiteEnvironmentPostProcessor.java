@@ -20,8 +20,8 @@ public class LiteEnvironmentPostProcessor implements EnvironmentPostProcessor, O
 
     private final Logger logger = LoggerFactory.getLogger(LiteEnvironmentPostProcessor.class);
 
-    public static final String HTTP_CLIENT_PREFIX = "airiot.client.http";
-    public static final String AUTHORIZATION_PREFIX = "airiot.client.authorization";
+    public static final String HTTP_CLIENT_PREFIX = "gtsiot.client.http";
+    public static final String AUTHORIZATION_PREFIX = "gtsiot.client.authorization";
 
     @Override
     public void postProcessEnvironment(@NonNull ConfigurableEnvironment environment, @NonNull SpringApplication application) {
@@ -58,7 +58,7 @@ public class LiteEnvironmentPostProcessor implements EnvironmentPostProcessor, O
             configs.put(AUTHORIZATION_PREFIX + ".app-secret", liteConfig.getSk());
         }
 
-        PropertySource<Map<String, Object>> propertySource = new MapPropertySource("airiot-lite", configs);
+        PropertySource<Map<String, Object>> propertySource = new MapPropertySource("gtsiot-lite", configs);
         environment.getPropertySources().addFirst(propertySource);
     }
 

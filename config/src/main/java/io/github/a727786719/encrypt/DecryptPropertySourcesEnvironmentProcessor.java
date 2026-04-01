@@ -33,7 +33,7 @@ import java.util.Map;
  */
 public class DecryptPropertySourcesEnvironmentProcessor implements EnvironmentPostProcessor, Ordered {
 
-    private final static String PROPERTY_SOURCE_NAME = "airiot-encrypt";
+    private final static String PROPERTY_SOURCE_NAME = "gtsiot-encrypt";
 
     @Override
     public void postProcessEnvironment(@NonNull ConfigurableEnvironment environment, @NonNull SpringApplication application) {

@@ -6,9 +6,9 @@ import com.google.gson.annotations.SerializedName;
 import java.util.Objects;
 
 /**
- * AIRIOT 配置
+ * 配置加载器配置
  */
-public class AiriotConfig {
+public class Config {
 
     @SerializedName("App")
     private App app;
@@ -25,7 +25,7 @@ public class AiriotConfig {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        AiriotConfig config = (AiriotConfig) o;
+        Config config = (Config) o;
         return Objects.equals(app, config.app);
     }
 
@@ -36,7 +36,7 @@ public class AiriotConfig {
 
     @Override
     public String toString() {
-        return "AiriotConfig{" +
+        return "Config{" +
                 "app=" + app +
                 '}';
     }

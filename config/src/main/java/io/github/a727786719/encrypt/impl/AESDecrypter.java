@@ -32,7 +32,7 @@ import java.util.Base64;
  */
 public class AESDecrypter extends AbstractDecrypter {
 
-    private static final String AES_KEY = "AIRIOTwj578KshNxbz6psbreTCwyYZCH";
+    private static final String AES_KEY = "GTSIOTwj578KshNxbz6psbreTCwyYZCH";
     private final SecretKeySpec secretKeySpec;
     
     public AESDecrypter(byte[] key) {

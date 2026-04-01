@@ -25,6 +25,8 @@ public class LicenseCore implements AutoCloseable {
 
     private static final Logger log = LoggerFactory.getLogger(LicenseCore.class);
 
+    public static final String LIBRARY_NAME = "license_core";
+
     private static final int DEFAULT_BUFFER_SIZE = 4096;
     private static final int ERROR_BUFFER_SIZE = 1024;
     private static final int RESULT_JSON_SIZE = 8192;
@@ -93,8 +95,11 @@ public class LicenseCore implements AutoCloseable {
      * @throws UnsatisfiedLinkError 如果无法加载本地库
      */
     public LicenseCore() {
-        // Load library from resources
-        String libraryPath = NativeLibraryLoader.extractLibrary("license_core");
+        this(LIBRARY_NAME);
+    }
+
+    public LicenseCore(String libraryName) {
+        String libraryPath = NativeLibraryLoader.getLibraryPath(libraryName);
         this.library = Native.load(libraryPath, LicenseLibrary.class);
         log.info("LicenseCore initialized successfully with library: {}", libraryPath);
     }

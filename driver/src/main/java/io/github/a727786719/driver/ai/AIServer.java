@@ -75,6 +75,7 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
     private final DriverApp<Object, Object, Object> driverApp;
     private final DataDispatchers dispatchers;
 
+    private final LicenseCore licenseCore;
     private final Path configFileDir;
     private final Path configFile;
     private final String configFileName;
@@ -110,6 +111,7 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
                     GlobalContext globalContext,
                     DriverApp<Object, Object, Object> driverApp,
                     DataDispatchers dispatchers) {
+        this.licenseCore = new LicenseCore();
         this.properties = properties;
         this.globalContext = globalContext;
         this.driverApp = driverApp;
@@ -363,15 +365,13 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
      */
     void checkLicense() throws LicenseException {
         String dataConfig = this.loadConfigStr();
-        try (LicenseCore licenseCore = new LicenseCore()) {
-            int resultCode = licenseCore.verifyLicense(this.properties.getLicenseDir(), this.properties.getId(), dataConfig);
-            LicenseVerifyResult result = this.gson.fromJson(licenseCore.getLastError(), LicenseVerifyResult.class);
-            if(resultCode != 0) {
-                this.licenseVerifyPass.set(false);
-                throw new IllegalStateException("授权验证失败, " + result.getError());
-            }
-            this.licenseVerifyPass.set(true);
+        int resultCode = this.licenseCore.verifyLicense(this.properties.getLicenseDir(), this.properties.getId(), dataConfig);
+        LicenseVerifyResult result = this.gson.fromJson(this.licenseCore.getLastError(), LicenseVerifyResult.class);
+        if(resultCode != 0) {
+            this.licenseVerifyPass.set(false);
+            throw new IllegalStateException("授权验证失败, " + result.getError());
         }
+        this.licenseVerifyPass.set(true);
     }
 
     /**

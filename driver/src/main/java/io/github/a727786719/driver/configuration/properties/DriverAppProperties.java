@@ -38,7 +38,7 @@ import java.util.UUID;
  * 驱动基础配置
  */
 @Validated
-@ConfigurationProperties(prefix = "airiot.driver")
+@ConfigurationProperties(prefix = "gtsiot.driver")
 public class DriverAppProperties implements InitializingBean, EnvironmentAware {
 
     private Environment environment;

@@ -26,7 +26,7 @@ public class EtcdEnvironmentPostProcessor implements EnvironmentPostProcessor, O
 
     private final Logger logger = LoggerFactory.getLogger(EtcdEnvironmentPostProcessor.class);
 
-    public static final String AUTHORIZATION_PREFIX = "airiot.client.authorization";
+    public static final String AUTHORIZATION_PREFIX = "gtsiot.client.authorization";
 
     @Override
     public void postProcessEnvironment(@NonNull ConfigurableEnvironment environment, @NonNull SpringApplication application) {
@@ -56,8 +56,8 @@ public class EtcdEnvironmentPostProcessor implements EnvironmentPostProcessor, O
         }
 
         try (Client client = builder.build()) {
-            AiriotConfig config = this.getConfig(client, etcdConfig);
-            AiriotConfig.API api = config.getApp().getApi();
+            Config config = this.getConfig(client, etcdConfig);
+            Config.API api = config.getApp().getApi();
 
             Map<String, Object> configs = new HashMap<>();
             if (StringUtils.hasText(api.getType())) {
@@ -73,14 +73,14 @@ public class EtcdEnvironmentPostProcessor implements EnvironmentPostProcessor, O
                 configs.put(AUTHORIZATION_PREFIX + ".app-secret", api.getSk());
             }
 
-            PropertySource<Map<String, Object>> propertySource = new MapPropertySource("airiot-etcd", configs);
+            PropertySource<Map<String, Object>> propertySource = new MapPropertySource("gtsiot-etcd", configs);
             environment.getPropertySources().addFirst(propertySource);
         } catch (Exception e) {
             throw new RuntimeException("读取平台配置异常", e);
         }
     }
 
-    AiriotConfig getConfig(Client client, EtcdConfigProperties etcdConfig) throws Exception {
+    Config getConfig(Client client, EtcdConfigProperties etcdConfig) throws Exception {
         try (KV kvClient = client.getKVClient()) {
             List<KeyValue> kvs = kvClient.get(ByteSequence.from(etcdConfig.getConfigKey(), StandardCharsets.UTF_8))
                     .get(etcdConfig.getReadTimeout().toMillis(), TimeUnit.MILLISECONDS)
@@ -94,7 +94,7 @@ public class EtcdEnvironmentPostProcessor implements EnvironmentPostProcessor, O
 
             logger.debug("平台 ETCD 配置: {}, {}", etcdConfig.getConfigKey(), configValue);
 
-            AiriotConfig config = new Gson().fromJson(configValue, AiriotConfig.class);
+            Config config = new Gson().fromJson(configValue, Config.class);
             if (config.getApp() == null || config.getApp().getApi() == null) {
                 logger.warn("未找到有效的平台配置: {}, {}", etcdConfig.getConfigKey(), configValue);
                 throw new IllegalStateException("未读取到平台配置: " + etcdConfig.getConfigKey());

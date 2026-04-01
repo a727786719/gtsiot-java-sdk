@@ -7,7 +7,7 @@ import java.util.List;
 
 public class EtcdConfigProperties {
 
-    public static final String PREFIX = "airiot.config.etcd";
+    public static final String PREFIX = "gtsiot.config.etcd";
 
     /**
      * 是否启用 etcd 配置初始化功能
@@ -28,7 +28,7 @@ public class EtcdConfigProperties {
     /**
      * 配置信息 在 etcd 中的 key.
      */
-    private String configKey = "/airiot/config/pro.json";
+    private String configKey = "/config/pro.json";
     /**
      * 连接超时
      */

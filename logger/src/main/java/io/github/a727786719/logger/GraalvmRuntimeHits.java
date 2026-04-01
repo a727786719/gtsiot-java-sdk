@@ -22,7 +22,7 @@ public class GraalvmRuntimeHits implements RuntimeHintsRegistrar {
                 .registerType(ILoggingEvent.class, builder -> builder.withMembers(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS))
                 .registerType(ch.qos.logback.classic.LoggerContext.class, builder -> builder.withMembers(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS));
 
-        hints.serialization()
+        hints.reflection()
                 .registerType(ch.qos.logback.classic.model.ConfigurationModel.class)
                 .registerType(ch.qos.logback.classic.model.LoggerModel.class)
                 .registerType(ch.qos.logback.classic.model.RootLoggerModel.class)

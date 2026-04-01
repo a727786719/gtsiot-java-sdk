@@ -51,7 +51,7 @@ public class ResponseDTO<T> {
     /**
      * 总记录数
      * <br>
-     * 当查询请求设置了 {@code cn.airiot.sdk.client.builder.Query#withCount} 为 {@code true} 时, 该字段为匹配的记录数量.
+     * 当查询请求设置了 {@code withCount} 为 {@code true} 时, 该字段为匹配的记录数量.
      */
     private long count;
     /**

@@ -6,6 +6,6 @@ import org.springframework.context.annotation.ImportRuntimeHints;
 
 @Configuration
 @ImportRuntimeHints(GraalvmRuntimeHits.class)
-public class AiriotLoggerAutoConfiguration {
+public class LoggerAutoConfiguration {
 
 }

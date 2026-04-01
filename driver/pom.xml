@@ -5,14 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.github.a727786719</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>gtsiot-sdk-parent</artifactId>
         <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <name>driver</name>
     <artifactId>driver</artifactId>
-    <description>AIRIOT 物联网平台数据接入驱动开发 SDK</description>
+    <description>平台数据接入驱动开发 SDK</description>
 
     <dependencies>
         <dependency>

@@ -26,7 +26,7 @@ import org.springframework.boot.logging.LogLevel;
 /**
  * 驱动采集的数据及事件上报配置
  */
-@ConfigurationProperties(prefix = "airiot.driver.data")
+@ConfigurationProperties(prefix = "gtsiot.driver.data")
 public class DriverDataProperties {
 
     /**

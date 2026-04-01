@@ -26,7 +26,7 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import java.util.HashMap;
 import java.util.Map;
 
-@ConfigurationProperties(prefix = "airiot.client.http")
+@ConfigurationProperties(prefix = "gtsiot.client.http")
 public class HttpClientProperties {
 
     private String host = "http://traefik:80";

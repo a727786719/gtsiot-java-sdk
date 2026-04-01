@@ -61,7 +61,7 @@ public class HttpCommonClient {
         this.writeTimeout = writeTimeout;
 
         this.authenticator = WebClientUtils.httpAuthentication(authorizationClient);
-        this.provider = ConnectionProvider.builder("airiot")
+        this.provider = ConnectionProvider.builder("gtsiot")
                 .maxConnections(20)
                 .maxIdleTime(Duration.ofSeconds(60))
                 .maxLifeTime(Duration.ofSeconds(300))
