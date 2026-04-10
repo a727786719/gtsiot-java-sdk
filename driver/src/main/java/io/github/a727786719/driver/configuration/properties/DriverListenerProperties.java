@@ -36,10 +36,10 @@ public class DriverListenerProperties implements EnvironmentAware, InitializingB
 
     private Environment environment;
 
-    private boolean enabled = true;
+    private boolean enable = true;
     private String host = "driver";
     private int port = 9224;
-    
+
     /**
      * 最大接收消息大小
      * <br>
@@ -63,8 +63,12 @@ public class DriverListenerProperties implements EnvironmentAware, InitializingB
      */
     private int runResultQueueSize = 1024;
 
-    public boolean isEnabled() {
-        return enabled;
+    public void setEnable(boolean enable) {
+        this.enable = enable;
+    }
+
+    public boolean isEnable() {
+        return enable;
     }
 
     public String getHost() {
@@ -138,7 +142,7 @@ public class DriverListenerProperties implements EnvironmentAware, InitializingB
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        this.enabled = Objects.requireNonNullElse(this.environment.getProperty("DRIVERGRPC.ENABLE", Boolean.class), this.enabled);
+        this.enable = Objects.requireNonNullElse(this.environment.getProperty("DRIVERGRPC.ENABLE", Boolean.class), this.enable);
         this.host = Objects.requireNonNullElse(this.environment.getProperty("DRIVERGRPC.HOST"), this.host);
         this.port = Objects.requireNonNullElse(this.environment.getProperty("DRIVERGRPC.PORT", Integer.class), this.port);
     }

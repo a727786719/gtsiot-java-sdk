@@ -28,7 +28,6 @@ import org.springframework.core.env.CommandLinePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Optional;
@@ -42,25 +41,6 @@ import java.util.UUID;
 public class DriverAppProperties implements InitializingBean, EnvironmentAware {
 
     private Environment environment;
-
-    /**
-     * 本地驱动配置文件
-     */
-    private boolean dataFileEnabled = false;
-    private String dataFilePath = "./data.json";
-
-    /**
-     * AI 服务配置
-     */
-    private boolean aiServerEnabled = false;
-    private String aiServerHost = "0.0.0.0";
-    private int aiServerPort = 8080;
-
-    /**
-     * 授权文件目录
-     */
-    @Value("${license:}")
-    private String licenseDir;
 
     /**
      * 当前驱动实例所属项目ID, 默认由平台注入
@@ -83,40 +63,11 @@ public class DriverAppProperties implements InitializingBean, EnvironmentAware {
      * <br>
      * 在平台安装驱动时, 该信息由平台通过命令行参数 {@code serviceId} 传入
      */
-//    @NotBlank(message = "驱动实例ID不能为空")
     @Value("${serviceId:}")
-    private String instanceId;
+    private String instanceId = UUID.randomUUID().toString();
 
     private String distributed = "";
-
-    public boolean isDataFileEnabled() {
-        return dataFileEnabled;
-    }
-
-    public String getDataFilePath() {
-        return dataFilePath;
-    }
-
-    public boolean isAiServerEnabled() {
-        return aiServerEnabled;
-    }
-
-    public String getAiServerHost() {
-        return aiServerHost;
-    }
-
-    public int getAiServerPort() {
-        return aiServerPort;
-    }
-
-    public String getLicenseDir() {
-        return licenseDir;
-    }
-
-    public void setLicenseDir(String licenseDir) {
-        this.licenseDir = licenseDir;
-    }
-
+    
     public String getProjectId() {
         return projectId;
     }
@@ -158,23 +109,6 @@ public class DriverAppProperties implements InitializingBean, EnvironmentAware {
     }
 
     @Override
-    public String toString() {
-        return "DriverAppProperties{" +
-                "environment=" + environment +
-                ", dataFileEnabled=" + dataFileEnabled +
-                ", dataFilePath='" + dataFilePath + '\'' +
-                ", aiServerEnabled=" + aiServerEnabled +
-                ", aiServerHost='" + aiServerHost + '\'' +
-                ", aiServerPort=" + aiServerPort +
-                ", projectId='" + projectId + '\'' +
-                ", id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", instanceId='" + instanceId + '\'' +
-                ", distributed='" + distributed + '\'' +
-                '}';
-    }
-
-    @Override
     public void afterPropertiesSet() throws Exception {
         if (this.environment instanceof ConfigurableEnvironment env) {
             Optional<PropertySource<?>> propertySource = env.getPropertySources().stream()
@@ -191,17 +125,6 @@ public class DriverAppProperties implements InitializingBean, EnvironmentAware {
                     this.projectId = String.valueOf(projectId);
                 }
             }
-        }
-
-        this.dataFileEnabled = environment.getProperty("DATAFILE.ENABLE", Boolean.class, false);
-        this.dataFilePath = environment.getProperty("DATAFILE.PATH", "./data.json");
-
-        this.aiServerEnabled = environment.getProperty("HTTP.ENABLE", Boolean.class, false);
-        this.aiServerHost = environment.getProperty("HTTP.HOST", "0.0.0.0");
-        this.aiServerPort = environment.getProperty("HTTP.PORT", Integer.class, 8080);
-
-        if (this.aiServerEnabled && !StringUtils.hasText(this.instanceId)) {
-            this.instanceId = UUID.randomUUID().toString();
         }
     }
 

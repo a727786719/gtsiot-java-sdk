@@ -535,7 +535,7 @@ public class GrpcDriverEventListener implements DriverEventListener, Application
 
     @Override
     public void start() {
-        if (!this.grpcProperties.isEnabled()) {
+        if (!this.grpcProperties.isEnable()) {
             log.info("GRPC Driver 未启用");
             return;
         }

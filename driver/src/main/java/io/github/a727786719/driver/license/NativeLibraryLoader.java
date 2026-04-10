@@ -51,7 +51,12 @@ final class NativeLibraryLoader {
             return path.toFile().getAbsolutePath();
         }
 
-        path = Paths.get("../lib").resolve(libraryFilename);
+        path = Paths.get("..").resolve(libraryFilename);
+        if(path.toFile().exists()) {
+            return path.toFile().getAbsolutePath();
+        }
+
+        path = Paths.get("../..").resolve(libraryFilename);
         if(path.toFile().exists()) {
             return path.toFile().getAbsolutePath();
         }

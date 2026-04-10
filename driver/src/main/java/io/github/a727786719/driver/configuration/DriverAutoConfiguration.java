@@ -21,10 +21,7 @@ package io.github.a727786719.driver.configuration;
 import io.github.a727786719.driver.DriverApp;
 import io.github.a727786719.driver.GlobalContext;
 import io.github.a727786719.driver.ai.AIServer;
-import io.github.a727786719.driver.configuration.properties.DriverAppProperties;
-import io.github.a727786719.driver.configuration.properties.DriverDataProperties;
-import io.github.a727786719.driver.configuration.properties.DriverListenerProperties;
-import io.github.a727786719.driver.configuration.properties.DriverMQProperties;
+import io.github.a727786719.driver.configuration.properties.*;
 import io.github.a727786719.driver.data.*;
 import io.github.a727786719.driver.data.handlers.TagValueCache;
 import io.github.a727786719.driver.data.impl.AmqpDataSender;
@@ -53,7 +50,14 @@ import java.util.stream.Collectors;
  */
 @Configuration
 @ImportRuntimeHints(GraalvmRuntimeHits.class)
-@EnableConfigurationProperties({DriverAppProperties.class, DriverDataProperties.class, DriverMQProperties.class, DriverListenerProperties.class})
+@EnableConfigurationProperties({DriverAppProperties.class,
+        DriverDataProperties.class,
+        DriverMQProperties.class,
+        DriverListenerProperties.class,
+        DriverHttpProperties.class,
+        DriverDataFileProperties.class,
+        DriverLicenseProperties.class
+})
 public class DriverAutoConfiguration {
 
     public DriverAutoConfiguration(DriverAppProperties properties) {
@@ -80,6 +84,9 @@ public class DriverAutoConfiguration {
 
     @Bean
     public AIServer aiServer(DriverAppProperties properties,
+                             DriverHttpProperties httpProperties,
+                             DriverDataFileProperties dataFileProperties,
+                             DriverLicenseProperties licenseProperties,
                              GlobalContext globalContext,
                              ObjectProvider<DriverApp> driverApp,
                              DataDispatchers dispatchers) {
@@ -87,7 +94,7 @@ public class DriverAutoConfiguration {
         if (app == null) {
             throw new BeanCreationException("未找到或找到多个 DriverApp 实例");
         }
-        return new AIServer(properties, globalContext, app, dispatchers);
+        return new AIServer(properties, httpProperties, dataFileProperties, licenseProperties, globalContext, app, dispatchers);
     }
 
     @Bean

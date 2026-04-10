@@ -9,6 +9,9 @@ import io.github.a727786719.driver.*;
 import io.github.a727786719.driver.config.BasicConfig;
 import io.github.a727786719.driver.config.DriverSingleConfig;
 import io.github.a727786719.driver.configuration.properties.DriverAppProperties;
+import io.github.a727786719.driver.configuration.properties.DriverDataFileProperties;
+import io.github.a727786719.driver.configuration.properties.DriverHttpProperties;
+import io.github.a727786719.driver.configuration.properties.DriverLicenseProperties;
 import io.github.a727786719.driver.data.DataDispatcher;
 import io.github.a727786719.driver.data.DataDispatchers;
 import io.github.a727786719.driver.data.PointSerializationAdapter;
@@ -71,6 +74,9 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
     private final AtomicBoolean started = new AtomicBoolean();
     private final Gson gson = new Gson();
     private final DriverAppProperties properties;
+    private final DriverHttpProperties httpProperties;
+    private final DriverDataFileProperties dataFileProperties;
+    private final DriverLicenseProperties licenseProperties;
     private final GlobalContext globalContext;
     private final DriverApp<Object, Object, Object> driverApp;
     private final DataDispatchers dispatchers;
@@ -108,10 +114,16 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
     private Thread watchThread;
 
     public AIServer(DriverAppProperties properties,
+                    DriverHttpProperties httpProperties,
+                    DriverDataFileProperties dataFileProperties,
+                    DriverLicenseProperties licenseProperties,
                     GlobalContext globalContext,
                     DriverApp<Object, Object, Object> driverApp,
                     DataDispatchers dispatchers) {
         this.licenseCore = new LicenseCore();
+        this.httpProperties = httpProperties;
+        this.dataFileProperties = dataFileProperties;
+        this.licenseProperties = licenseProperties;
         this.properties = properties;
         this.globalContext = globalContext;
         this.driverApp = driverApp;
@@ -121,7 +133,7 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
         this.cmdType = parameterizedTypes[1];
         this.tagType = parameterizedTypes[2];
 
-        this.configFile = Paths.get(properties.getDataFilePath()).normalize().toAbsolutePath();
+        this.configFile = Paths.get(dataFileProperties.getPath()).normalize().toAbsolutePath();
         this.configFileDir = this.configFile.getParent();
         this.configFileName = this.configFile.toFile().getName();
     }
@@ -190,7 +202,7 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
             throw new IllegalStateException("AIServer 已启动, 不允许重复启动");
         }
 
-        if (this.properties.isAiServerEnabled()) {
+        if (this.httpProperties.isEnable()) {
             this.dispatchers.register(this);
 
             if (this.httpServerThread != null) {
@@ -203,7 +215,7 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
             logger.info("AI 功能未启用");
         }
 
-        if (this.properties.isDataFileEnabled()) {
+        if (this.dataFileProperties.isEnable()) {
             if (this.watchThread != null) {
                 this.watchThread.interrupt();
             }
@@ -264,11 +276,11 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
     }
 
     void startServer() {
-        String host = StringUtils.hasText(this.properties.getAiServerHost()) ? this.properties.getAiServerHost() : "0.0.0.0";
-        logger.info("启动 AIServer, listen on {}:{}", host, this.properties.getAiServerPort());
+        String host = StringUtils.hasText(this.httpProperties.getHost()) ? this.httpProperties.getHost() : "0.0.0.0";
+        logger.info("启动 AIServer, listen on {}:{}", host, this.httpProperties.getPort());
         Path indexHtml = Paths.get(INDEX_HTML_FILE);
         this.httpServer = HttpServer.create()
-                .port(this.properties.getAiServerPort())
+                .port(this.httpProperties.getPort())
                 .route(routes -> {
                     routes.file("/", indexHtml);
                     routes.file("/index", indexHtml);
@@ -286,13 +298,9 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
                     this.driverApp.registerRoutes(routes);
                 }).bindNow();
 
-        logger.info("AIServer 已启动, listening on {}:{}", host, this.properties.getAiServerPort());
-        
+        logger.info("AIServer 已启动, listening on {}:{}", host, this.httpProperties.getPort());
+
         this.httpServer.onDispose().block();
-    }
-
-    void writeConfig(String config) {
-
     }
 
     /**
@@ -352,24 +360,25 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
                 return;
             }
             this.globalContext.resetGlobalContext(driverConfig);
-            this.checkLicense();
         } catch (FileNotFoundException e) {
         } catch (IOException e) {
             throw new RuntimeException("读取驱动配置文件失败", e);
         }
     }
-
+    
     /**
      * 校验当前驱动的授权
+     *
      * @throws LicenseException 如果授权验证不通过
      */
     void checkLicense() throws LicenseException {
         String dataConfig = this.loadConfigStr();
-        int resultCode = this.licenseCore.verifyLicense(this.properties.getLicenseDir(), this.properties.getId(), dataConfig);
+        logger.info("检查驱动授权: 机器码: {}, 授权文件路径{}", this.licenseCore.getMachineCode(), this.licenseProperties.getLicense());
+        int resultCode = this.licenseCore.verifyLicense(this.licenseProperties.getLicense(), this.properties.getId(), dataConfig);
         LicenseVerifyResult result = this.gson.fromJson(this.licenseCore.getLastError(), LicenseVerifyResult.class);
-        if(resultCode != 0) {
+        if (resultCode != 0) {
             this.licenseVerifyPass.set(false);
-            throw new IllegalStateException("授权验证失败, " + result.getError());
+            throw new LicenseException("授权验证失败, " + result.getError());
         }
         this.licenseVerifyPass.set(true);
     }
@@ -403,7 +412,7 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
                 return response.status(400)
                         .header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON)
                         .sendString(Mono.just(this.gson.toJson(ErrorResult.of("授权校验失败, " + e.getMessage())))).then();
-            }catch (Exception e) {
+            } catch (Exception e) {
                 return response.status(400)
                         .header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON)
                         .sendString(Mono.just(this.gson.toJson(ErrorResult.of(e.getMessage())))).then();
@@ -422,7 +431,7 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
         return request.receive().aggregate().asString(StandardCharsets.UTF_8).flatMap(cmdData -> {
             Result result = new Result();
             result.setCode(200);
-            if(!this.licenseVerifyPass.get()) {
+            if (!this.licenseVerifyPass.get()) {
                 logger.error("指令执行失败, 授权校验未通过");
                 result.setCode(400);
                 result.setError("授权校验未通过");
@@ -470,7 +479,7 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
             Result result = new Result();
             result.setCode(200);
 
-            if(!this.licenseVerifyPass.get()) {
+            if (!this.licenseVerifyPass.get()) {
                 result.setCode(400);
                 result.setError("授权校验未通过");
             } else {
@@ -515,7 +524,7 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
             Result result = new Result();
             result.setCode(200);
 
-            if(!this.licenseVerifyPass.get()) {
+            if (!this.licenseVerifyPass.get()) {
                 result.setCode(400);
                 result.setError("授权校验未通过");
             } else {
