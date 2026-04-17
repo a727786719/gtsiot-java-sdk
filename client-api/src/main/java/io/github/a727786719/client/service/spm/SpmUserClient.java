@@ -21,6 +21,7 @@ import io.github.a727786719.client.annotation.NonProject;
 import io.github.a727786719.client.dto.ResponseDTO;
 import io.github.a727786719.client.dto.Token;
 import io.github.a727786719.client.service.PlatformClient;
+import io.github.a727786719.client.service.spm.dto.RequestAuthTokenBody;
 
 import javax.annotation.Nonnull;
 
@@ -37,6 +38,18 @@ public interface SpmUserClient extends PlatformClient {
      * @param appSecret 扩展应用密钥
      * @return token
      */
-    ResponseDTO<Token> getToken(@Nonnull String appKey, @Nonnull String appSecret);
+    default ResponseDTO<Token> getToken(@Nonnull String appKey, @Nonnull String appSecret) {
+        RequestAuthTokenBody body = new RequestAuthTokenBody();
+        body.setAk(appKey);
+        body.setSk(appSecret);
+        return getToken(body);
+    }
+
+    /**
+     * 使用 {@code appKey} 和 {@code appSecret} 获取租户级 token
+     * @param auth 认证信息
+     * @return token
+     */
+    ResponseDTO<Token> getToken(@Nonnull RequestAuthTokenBody auth);
 
 }

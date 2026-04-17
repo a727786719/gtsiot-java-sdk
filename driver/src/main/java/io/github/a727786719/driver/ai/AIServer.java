@@ -81,7 +81,6 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
     private final DriverApp<Object, Object, Object> driverApp;
     private final DataDispatchers dispatchers;
 
-    private final LicenseCore licenseCore;
     private final Path configFileDir;
     private final Path configFile;
     private final String configFileName;
@@ -107,6 +106,7 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
      */
     private final Map<String, WebsocketSubscription.DeviceStatusMessagePayload> deviceStatus = new ConcurrentHashMap<>();
 
+    private LicenseCore licenseCore;
     private DisposableServer httpServer;
 
     private Thread httpServerThread;
@@ -120,7 +120,6 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
                     GlobalContext globalContext,
                     DriverApp<Object, Object, Object> driverApp,
                     DataDispatchers dispatchers) {
-        this.licenseCore = new LicenseCore();
         this.httpProperties = httpProperties;
         this.dataFileProperties = dataFileProperties;
         this.licenseProperties = licenseProperties;
@@ -203,6 +202,8 @@ public class AIServer implements SmartLifecycle, DataDispatcher {
         }
 
         if (this.httpProperties.isEnable()) {
+            this.licenseCore = new LicenseCore();
+
             this.dispatchers.register(this);
 
             if (this.httpServerThread != null) {

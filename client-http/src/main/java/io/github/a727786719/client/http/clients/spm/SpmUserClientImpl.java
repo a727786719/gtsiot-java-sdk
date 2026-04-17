@@ -21,8 +21,9 @@ import io.github.a727786719.client.annotation.DisableAuth;
 import io.github.a727786719.client.dto.ResponseDTO;
 import io.github.a727786719.client.dto.Token;
 import io.github.a727786719.client.service.spm.SpmUserClient;
-import jakarta.annotation.Nonnull;
-import org.springframework.web.bind.annotation.RequestParam;
+import io.github.a727786719.client.service.spm.dto.RequestAuthTokenBody;
+import org.jspecify.annotations.NonNull;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
 
@@ -32,5 +33,5 @@ public interface SpmUserClientImpl extends SpmUserClient {
     @DisableAuth
     @PostExchange("/spm/token")
     @Override
-    ResponseDTO<Token> getToken(@Nonnull @RequestParam("ak") String appKey, @Nonnull @RequestParam("sk") String appSecret);
+    ResponseDTO<Token> getToken(@NonNull @RequestBody RequestAuthTokenBody auth);
 }
