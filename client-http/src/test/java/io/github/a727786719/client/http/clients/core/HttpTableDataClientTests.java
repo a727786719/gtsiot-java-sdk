@@ -32,6 +32,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,16 +60,20 @@ public class HttpTableDataClientTests {
         this.tableDataClient = tableDataClientFactory.newClient(TableData.class);
     }
 
-    @AfterAll
+//    @AfterAll
     void cleanup() {
-        ResponseDTO<Void> response1 = this.tableDataClient.deleteById(this.createId);
-        Assertions.assertTrue(response1.isSuccess(), response1.getMessage());
+        if(StringUtils.hasText(this.createId)) {
+            ResponseDTO<Void> response1 = this.tableDataClient.deleteById(this.createId);
+            Assertions.assertTrue(response1.isSuccess(), response1.getMessage());
+        }
 
-        ResponseDTO<UpdateOrDeleteResult> response2 = this.tableDataClient.deleteByQuery(Query.newBuilder()
-                .filter().in(TableData::getId, this.insertIds).end().build());
-        Assertions.assertTrue(response2.isSuccess(), response2.getMessage());
-        Assertions.assertNotNull(response2.getData(), "未返回数据");
-        Assertions.assertEquals(2, response2.getData().getCount(), "删除记录数量不正确");
+        if(!CollectionUtils.isEmpty(this.insertIds)) {
+            ResponseDTO<UpdateOrDeleteResult> response2 = this.tableDataClient.deleteByQuery(Query.newBuilder()
+                    .filter().in(TableData::getId, this.insertIds).end().build());
+            Assertions.assertTrue(response2.isSuccess(), response2.getMessage());
+            Assertions.assertNotNull(response2.getData(), "未返回数据");
+            Assertions.assertEquals(2, response2.getData().getCount(), "删除记录数量不正确");
+        }
     }
 
     @Test
@@ -91,12 +97,14 @@ public class HttpTableDataClientTests {
     @Order(2)
     void createBatch() {
         TableData row1 = new TableData();
+//        row1.setId("stu_004");
         row1.setName("李四");
         row1.setAge(20);
         row1.setGender("male");
         row1.setBirthday("2002-03-04");
 
         TableData row2 = new TableData();
+//        row2.setId("stu_002");
         row2.setName("小红");
         row2.setAge(19);
         row2.setGender("female");

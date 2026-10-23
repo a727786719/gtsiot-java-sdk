@@ -17,25 +17,26 @@
 
 package io.github.a727786719.client.http.clients;
 
+import io.github.a727786719.client.context.RequestContext;
 import io.github.a727786719.client.dto.ResponseDTO;
 import io.github.a727786719.client.dto.Token;
 import io.github.a727786719.client.exception.AuthorizationException;
 import io.github.a727786719.client.properties.AuthorizationProperties;
 import io.github.a727786719.client.service.AuthorizationClient;
-import io.github.a727786719.client.service.spm.SpmUserClient;
+import io.github.a727786719.client.service.core.AppClient;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class HttpTenantAuthorizationClientImpl implements AuthorizationClient {
+public class HttpAuthorizationClientImpl implements AuthorizationClient {
 
     private final AtomicReference<TokenHolder> holder = new AtomicReference<>();
-    private final SpmUserClient spmUserClient;
+    private final AppClient appClient;
     private final AuthorizationProperties properties;
 
-    public HttpTenantAuthorizationClientImpl(SpmUserClient spmUserClient, AuthorizationProperties properties) {
-        this.spmUserClient = spmUserClient;
+    public HttpAuthorizationClientImpl(AppClient appClient, AuthorizationProperties properties) {
+        this.appClient = appClient;
         this.properties = properties;
     }
 
@@ -49,9 +50,15 @@ public class HttpTenantAuthorizationClientImpl implements AuthorizationClient {
         if (!StringUtils.hasText(this.properties.getAppKey()) || !StringUtils.hasText(this.properties.getAppSecret())) {
             throw new AuthorizationException(500, "认证失败", "未设置 appKey 或 appSecret");
         }
-        
+
+        ResponseDTO<Token> response;
         try {
-            ResponseDTO<Token> response = this.spmUserClient.getToken(this.properties.getAppKey(), this.properties.getAppSecret());
+            if(AuthorizationProperties.Type.TENANT.equals(this.properties.getType())) {
+                response = this.appClient.getToken("base", this.properties.getAppKey(), this.properties.getAppSecret());
+            } else {
+                response = this.appClient.getToken(this.properties.getProjectId(), this.properties.getAppKey(), this.properties.getAppSecret());
+            }
+
             Token t = response.unwrap(() -> new AuthorizationException(response.getCode(), response.getMessage(), response.getDetail()));
             this.holder.set(new TokenHolder(this.properties.getAppKey(), this.properties.getAppSecret(), t));
             return t;

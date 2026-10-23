@@ -44,6 +44,8 @@ public class SpecificTableDataClientImpl<T> extends SpecificTableDataClient<T> {
             return response.to();
         } else if (String.class.isAssignableFrom(tClass)) {
             return response.to(tClass.cast(response.getData()));
+        } else if (Void.class.isAssignableFrom(tClass)) {
+            return new ResponseDTO<>(true, 0, 200, "OK", "", null);
         }
         E data = CustomGson.GSON.fromJson(response.getData(), tClass);
         return response.to(data);

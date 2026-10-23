@@ -1,6 +1,6 @@
 package io.github.a727786719.config.lite;
 
-public class LiteAPIConfig {
+public class LiteAPIConfigProperties {
 
     public static final String PREFIX = "api";
 

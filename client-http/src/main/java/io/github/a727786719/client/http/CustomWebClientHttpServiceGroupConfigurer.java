@@ -127,12 +127,7 @@ public class CustomWebClientHttpServiceGroupConfigurer implements WebClientHttpS
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) serviceConfig.getConnectTimeout().toMillis())
                     .doOnRequest((req, conn) -> {
                         conn.addHandlerLast(new ReadTimeoutHandler((int) serviceConfig.getReadTimeout().toSeconds()));
-                    });
-
-            // 如果不是 spm 的相关接口, 在请注时添加项目ID
-            if (ServiceType.SPM != serviceType) {
-                client = client.doOnRequest(WebClientUtils.proxyProjectId());
-            }
+                    }).doOnRequest(WebClientUtils.proxyProjectId());
 
             clientBuilder.clientConnector(new ReactorClientHttpConnector(client));
             clientBuilder.codecs(configurer -> configurer.customCodecs()

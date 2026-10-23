@@ -20,8 +20,7 @@ package io.github.a727786719.client.http.configuration;
 
 import io.github.a727786719.client.http.CustomQueryMethodArgumentResolver;
 import io.github.a727786719.client.http.CustomWebClientHttpServiceGroupConfigurer;
-import io.github.a727786719.client.http.clients.HttpProjectAuthorizationClientImpl;
-import io.github.a727786719.client.http.clients.HttpTenantAuthorizationClientImpl;
+import io.github.a727786719.client.http.clients.HttpAuthorizationClientImpl;
 import io.github.a727786719.client.http.clients.common.HttpCommonClient;
 import io.github.a727786719.client.http.clients.core.TableDataClientFactoryImpl;
 import io.github.a727786719.client.http.clients.core.TableDataClientImpl;
@@ -31,7 +30,6 @@ import io.github.a727786719.client.properties.AuthorizationProperties;
 import io.github.a727786719.client.service.AuthorizationClient;
 import io.github.a727786719.client.service.core.AppClient;
 import io.github.a727786719.client.service.core.TableDataClientFactory;
-import io.github.a727786719.client.service.spm.SpmUserClient;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -68,11 +66,8 @@ public class HttpClientAutoConfiguration {
 
     @Bean
     public AuthorizationClient authorizationClient(AuthorizationProperties properties,
-                                                   AppClient httpAppClient,
-                                                   SpmUserClient spmUserClient) {
-        return AuthorizationProperties.Type.PROJECT.equals(properties.getType()) ?
-                new HttpProjectAuthorizationClientImpl(httpAppClient, properties) :
-                new HttpTenantAuthorizationClientImpl(spmUserClient, properties);
+                                                   AppClient httpAppClient) {
+        return new HttpAuthorizationClientImpl(httpAppClient, properties);
     }
 
     @Bean

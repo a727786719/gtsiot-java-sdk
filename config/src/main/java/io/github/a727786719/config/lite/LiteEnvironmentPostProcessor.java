@@ -26,9 +26,9 @@ public class LiteEnvironmentPostProcessor implements EnvironmentPostProcessor, O
     @Override
     public void postProcessEnvironment(@NonNull ConfigurableEnvironment environment, @NonNull SpringApplication application) {
         // 从 yaml 中读取 etcd 的连接地址
-        LiteAPIConfig liteConfig = Binder.get(environment)
-                .bind(LiteAPIConfig.PREFIX, LiteAPIConfig.class)
-                .orElse(new LiteAPIConfig()); // 如果 yaml 里没配，使用默认值
+        LiteAPIConfigProperties liteConfig = Binder.get(environment)
+                .bind(LiteAPIConfigProperties.PREFIX, LiteAPIConfigProperties.class)
+                .orElse(new LiteAPIConfigProperties()); // 如果 yaml 里没配，使用默认值
 
         if (!Boolean.TRUE.equals(liteConfig.getLiteMode())) {
             logger.info("当前不是 Lite 模式");

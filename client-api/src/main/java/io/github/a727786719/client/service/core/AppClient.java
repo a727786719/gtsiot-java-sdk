@@ -38,4 +38,14 @@ public interface AppClient extends PlatformClient {
      */
     ResponseDTO<Token> getToken(@Nonnull String appKey, @Nonnull String appSecret);
 
+    /**
+     * 使用 {@code appKey} 和 {@code appSecret} 获取指定项目级 token
+     *
+     * @param projectId 项目ID
+     * @param appKey    扩展应用标识
+     * @param appSecret 扩展应用密钥
+     * @return token
+     */
+    ResponseDTO<Token> getToken(@Nonnull String projectId, @Nonnull String appKey, @Nonnull String appSecret);
+
 }

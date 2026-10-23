@@ -21,7 +21,9 @@ package io.github.a727786719.client.http.clients.core;
 import io.github.a727786719.client.annotation.DisableAuth;
 import io.github.a727786719.client.dto.ResponseDTO;
 import io.github.a727786719.client.dto.Token;
+import io.github.a727786719.client.service.Constants;
 import io.github.a727786719.client.service.core.AppClient;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
@@ -35,4 +37,9 @@ public interface AppClientImpl extends AppClient {
     @GetExchange(value = "/core/auth/token", accept = "application/json")
     @Override
     ResponseDTO<Token> getToken(@Nonnull @RequestParam("appkey") String appKey, @Nonnull @RequestParam("appsecret") String appSecret);
+
+    @DisableAuth
+    @GetExchange(value = "/core/auth/token", accept = "application/json")
+    @Override
+    ResponseDTO<Token> getToken(@Nonnull @RequestHeader(Constants.HEADER_PROJECT) String projectId, @Nonnull @RequestParam("appkey") String appKey, @Nonnull @RequestParam("appsecret") String appSecret);
 }

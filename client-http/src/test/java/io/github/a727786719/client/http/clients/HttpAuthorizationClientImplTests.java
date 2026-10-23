@@ -18,6 +18,7 @@
 package io.github.a727786719.client.http.clients;
 
 
+import io.github.a727786719.client.context.RequestContext;
 import io.github.a727786719.client.dto.ResponseDTO;
 import io.github.a727786719.client.dto.Token;
 import io.github.a727786719.client.properties.AuthorizationProperties;
@@ -44,7 +45,7 @@ public class HttpAuthorizationClientImplTests {
 
     @Test
     void getProjectToken() {
-        ResponseDTO<Token> response = appClient.getToken(authorizationProperties.getAppKey(), authorizationProperties.getAppSecret());
+        ResponseDTO<Token> response = appClient.getToken("base", authorizationProperties.getAppKey(), authorizationProperties.getAppSecret());
         Assertions.assertTrue(response.isSuccess(), response.getMessage());
         Assertions.assertNotNull(response.getData());
         Assertions.assertNotNull(response.getData().getToken());

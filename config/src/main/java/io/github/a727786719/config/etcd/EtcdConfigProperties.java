@@ -1,10 +1,13 @@
 package io.github.a727786719.config.etcd;
 
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+@ConfigurationProperties(prefix = EtcdConfigProperties.PREFIX)
 public class EtcdConfigProperties {
 
     public static final String PREFIX = "gtsiot.config.etcd";
